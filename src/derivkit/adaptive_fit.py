@@ -1,4 +1,5 @@
 from typing import Optional
+from multiprocessing import Pool
 import warnings
 warnings.simplefilter("once", category=RuntimeWarning)
 
@@ -55,6 +56,7 @@ class AdaptiveFitDerivative:
             include_zero=True,
             min_samples=7,
             diagnostics=False,
+            n_workers: int = 1,
             fallback_mode: str = "finite_difference",  # "finite_difference" | "poly_at_floor" | "auto"
             floor_accept_multiplier: float = 2.0,  # used when fallback_mode == "auto"
     ):
@@ -83,6 +85,8 @@ class AdaptiveFitDerivative:
         x_values = self.central_value + x_offsets
 
         # Evaluate the function at those points
+        with Pool(n_worker) as pool:
+            y_values = pool.map(self.function, x_values)
         y_values = np.vstack([np.atleast_1d(self.function(x)) for x in x_values])
         _, n_components = y_values.shape
         derivatives = np.zeros(n_components)
